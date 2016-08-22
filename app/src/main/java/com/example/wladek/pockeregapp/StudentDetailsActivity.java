@@ -8,13 +8,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.example.wladek.pockeregapp.pojo.Student;
+import com.example.wladek.pockeregapp.util.DatabaseHelper;
 import com.kosalgeek.android.photoutil.CameraPhoto;
 import com.kosalgeek.android.photoutil.GalleryPhoto;
 import com.squareup.picasso.Picasso;
@@ -38,6 +43,20 @@ public class StudentDetailsActivity extends AppCompatActivity {
     FloatingActionButton fab;
     Picasso mPicasso;
 
+    DatabaseHelper dbHelper;
+
+    EditText inputFirstName;
+    EditText inputSecondName;
+    EditText inputSurName;
+    EditText inputStudentNumber;
+    EditText inputParentName;
+    EditText inputParentIdNumber;
+    EditText inputParentPhoneNumber;
+
+    Button btnSubmit;
+
+    String photoUrl = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,15 +67,33 @@ public class StudentDetailsActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
+        dbHelper = new DatabaseHelper(this);
+
         mPicasso = Picasso.with(this);
 
         imgStudentPic = (ImageView) findViewById(R.id.imgStudentPic);
+
+        inputFirstName = (EditText) findViewById(R.id.inputFirstName);
+        inputSecondName = (EditText) findViewById(R.id.inputSecondName);
+        inputSurName = (EditText) findViewById(R.id.inputSurName);
+        inputStudentNumber = (EditText) findViewById(R.id.inputStudentNumber);
+        inputParentName = (EditText) findViewById(R.id.inputParentName);
+        inputParentIdNumber = (EditText) findViewById(R.id.inputParentIdNumber);
+        inputParentPhoneNumber = (EditText) findViewById(R.id.inputParentPhoneNumber);
+        btnSubmit = (Button) findViewById(R.id.btnSubmit);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showGalleryOptions();
+            }
+        });
+
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createStudentRecord();
             }
         });
     }
@@ -151,7 +188,93 @@ public class StudentDetailsActivity extends AppCompatActivity {
                     .error(R.drawable.error_circle)
                     .resize(400, 400)
                     .into(imgStudentPic);
+
+            this.photoUrl = photoPath;
         }
+    }
+
+
+    public void createStudentRecord(){
+
+        String firstName = inputFirstName.getText().toString();
+        String secondName = inputSecondName.getText().toString();
+        String surName = inputSurName.getText().toString();
+        String studentNumber = inputStudentNumber.getText().toString();
+        String parentName = inputParentName.getText().toString();
+        String parentIdNo = inputParentIdNumber.getText().toString();
+        String parentPhoneNo = inputParentPhoneNumber.getText().toString();
+
+        View focusView = null;
+
+        boolean invalid = false;
+
+        if (TextUtils.isEmpty(firstName)){
+            inputFirstName.setError("please provide first name");
+            focusView = inputFirstName;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(secondName)){
+            inputSecondName.setError("please provide second name");
+            focusView = inputSecondName;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(surName)){
+            inputSurName.setError("please provide surname");
+            focusView = inputSurName;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(studentNumber)){
+            inputStudentNumber.setError("please provide student registration number");
+            focusView = inputStudentNumber;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(parentName)){
+            inputParentName.setError("please provide parent's full name");
+            focusView = inputParentName;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(parentIdNo)){
+            inputParentIdNumber.setError("please provide parent's ID number");
+            focusView = inputParentIdNumber;
+            invalid = true;
+        }
+
+        if (TextUtils.isEmpty(parentPhoneNo)){
+            inputParentPhoneNumber.setError("please provide parent's phone number");
+            focusView = inputParentPhoneNumber;
+            invalid = true;
+        }
+
+        if (invalid){
+            focusView.requestFocus();
+        }else {
+            Student student = new Student();
+            student.setFirstName(firstName);
+            student.setSchoolCode(secondName);
+            student.setSurName(surName);
+            student.setStudentNo(studentNumber);
+            student.setParentFullName(parentName);
+            student.setParentIdNumber(parentIdNo);
+            student.setParentPhoneNumber(parentPhoneNo);
+
+            if (TextUtils.isEmpty(photoUrl)){
+                Toast.makeText(getApplicationContext() , "Error !!! , No photo provided." , Toast.LENGTH_LONG).show();
+                return;
+            }else {
+                student.setPhotoPath(photoUrl);
+
+                String response = dbHelper.createStudent(student);
+
+                Toast.makeText(getApplicationContext() , response , Toast.LENGTH_LONG).show();
+
+            }
+        }
+
     }
 
 }

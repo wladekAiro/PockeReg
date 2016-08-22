@@ -1,8 +1,12 @@
 package com.example.wladek.pockeregapp.util;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.example.wladek.pockeregapp.pojo.Student;
 
 /**
  * Created by wladek on 8/15/16.
@@ -66,45 +70,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //        return expenseItems;
 //    }
 
-//    public Student createStudent(Student student) {
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        String pic_url = expenseItem.getImagePath();
-//
-//        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_EXPENSES + " WHERE EXPENSE_PHOTO_URL =?",
-//                new String[]{pic_url});
-//
-//        if (cursor.getCount() == 0) {
-//            //Create new record
-//            ContentValues contentValues = new ContentValues();
-//            contentValues.put("EXPENSE_NAME", expenseItem.getExpenseName());
-//            contentValues.put("EXPENSE_DATE", expenseItem.getExpenseDate());
-//            contentValues.put("EXPENSE_PHOTO_URL", expenseItem.getImagePath());
-//            contentValues.put("EXPENSE_AMOUNT", expenseItem.getExpenseAmount());
-//
-//            Long result = db.insert(TABLE_EXPENSES, null, contentValues);
-//
-//            if (result == -1) {
-//
-//                return null;
-//
-//            }
-//        } else {
-//            //Update record
-//            ContentValues contentValues = new ContentValues();
-//            contentValues.put("EXPENSE_NAME", expenseItem.getExpenseName());
-//            contentValues.put("EXPENSE_DATE", expenseItem.getExpenseDate());
-//            contentValues.put("EXPENSE_PHOTO_URL", expenseItem.getImagePath());
-//            contentValues.put("EXPENSE_AMOUNT", expenseItem.getExpenseAmount());
-//
-//            db.update(TABLE_EXPENSES, contentValues, "EXPENSE_PHOTO_URL='" + pic_url + "'", null);
-//
-//        }
-//
-//        db.close();
-//
-//        return expenseItem;
-//    }
+    public String createStudent(Student student) {
+        String response = null;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_STUDENTS + " WHERE STUDENT_PHOTO_URL =?",
+                new String[]{student.getPhotoPath()});
+
+        if (cursor.getCount() == 0) {
+            //Create new record
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("FIRST_NAME", student.getFirstName());
+            contentValues.put("SECOND_NAME", student.getSecondName());
+            contentValues.put("SUR_NAME", student.getSurName());
+            contentValues.put("STUDENT_NUMBER", student.getStudentNo());
+            contentValues.put("PARENT_FULL_NAME", student.getParentFullName());
+            contentValues.put("PARENT_ID_NUMBER", student.getParentIdNumber());
+            contentValues.put("STUDENT_PHOTO_URL", student.getPhotoPath());
+            contentValues.put("STUDENT_SCHOOL_CODE", student.getSchoolCode());
+
+            Long result = db.insert(TABLE_STUDENTS, null, contentValues);
+
+            if (result == -1) {
+                response = "Error while creating student";
+            }else {
+                response = "Student created";
+            }
+
+        } else {
+            //Update record
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("FIRST_NAME", student.getFirstName());
+            contentValues.put("SECOND_NAME", student.getSecondName());
+            contentValues.put("SUR_NAME", student.getSurName());
+            contentValues.put("STUDENT_NUMBER", student.getStudentNo());
+            contentValues.put("PARENT_FULL_NAME", student.getParentFullName());
+            contentValues.put("PARENT_ID_NUMBER", student.getParentIdNumber());
+            contentValues.put("STUDENT_PHOTO_URL", student.getPhotoPath());
+            contentValues.put("STUDENT_SCHOOL_CODE", student.getSchoolCode());
+
+            int result = db.update(TABLE_STUDENTS, contentValues, "STUDENT_PHOTO_URL='" + student.getPhotoPath() + "'", null);
+
+            if (result > 0){
+                response = "Student Updated";
+            }else {
+                response = "Error while updating student";
+            }
+        }
+
+        db.close();
+
+        return response;
+    }
 //
 //    public String createClaim(ExpenseClaim expenseClaim) {
 //        SQLiteDatabase db = this.getWritableDatabase();
