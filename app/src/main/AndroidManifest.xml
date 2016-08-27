@@ -7,6 +7,7 @@
     <uses-feature
         android:name="android.hardware.camera2"
         android:required="true" />
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -26,10 +27,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ProvideSchoolActivity"
+            android:parentActivityName=".LoginActivity"/>
         <activity
             android:name=".StudentDetailsActivity"
             android:label="@string/title_activity_student_details"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

@@ -91,7 +91,7 @@ public class LoginActivity extends AppCompatActivity{
     }
 
     private void startRegStudent() {
-        Intent intent = new Intent(getApplicationContext() , StudentDetailsActivity.class);
+        Intent intent = new Intent(getApplicationContext() , ProvideSchoolActivity.class);
         startActivity(intent);
     }
 

@@ -4,6 +4,7 @@ package com.example.wladek.pockeregapp.pojo;
  * Created by wladek on 8/21/16.
  */
 public class Student {
+    private Long id;
     private String photoPath;
     private String firstName;
     private String secondName;
@@ -15,6 +16,14 @@ public class Student {
     private String schoolCode;
 
     public Student(){
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getPhotoPath() {
