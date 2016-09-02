@@ -7,25 +7,30 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.util.List;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
+import com.example.wladek.pockeregapp.util.LoginRequest;
+import com.example.wladek.pockeregapp.util.RegisterRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity{
+public class LoginActivity extends AppCompatActivity {
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -47,10 +52,11 @@ public class LoginActivity extends AppCompatActivity{
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    private EditText edName;
     private View mProgressView;
     private View mLoginFormView;
     private Button btnSkip;
-    private Button mEmailSignInButton;
+    private Button btnRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +65,7 @@ public class LoginActivity extends AppCompatActivity{
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
+        edName = (EditText) findViewById(R.id.edName);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -71,8 +78,8 @@ public class LoginActivity extends AppCompatActivity{
         });
 
         btnSkip = (Button) findViewById(R.id.btnSkip);
-        mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        btnRegister = (Button) findViewById(R.id.btnRegister);
+        btnRegister.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 attemptLogin();
@@ -91,7 +98,7 @@ public class LoginActivity extends AppCompatActivity{
     }
 
     private void startRegStudent() {
-        Intent intent = new Intent(getApplicationContext() , ProvideSchoolActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ProvideSchoolActivity.class);
         startActivity(intent);
     }
 
@@ -110,6 +117,7 @@ public class LoginActivity extends AppCompatActivity{
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
+        String name = edName.getText().toString();
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
@@ -124,7 +132,11 @@ public class LoginActivity extends AppCompatActivity{
         }
 
         // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
+        if (TextUtils.isEmpty(name)) {
+            edName.setError(getString(R.string.error_field_required));
+            focusView = edName;
+            cancel = true;
+        } else if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
@@ -142,10 +154,73 @@ public class LoginActivity extends AppCompatActivity{
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            login(email, password);
+
         }
     }
+
+    private void login(String email, String password) {
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonResponse = new JSONObject(response);
+                    boolean resp = jsonResponse.getBoolean("success");
+
+
+//                    if (resp) {
+//                        showProgress(false);
+//
+//                        Toast.makeText(getApplicationContext(), "Server response : " + resp, Toast.LENGTH_LONG).show();
+//
+//                    } else {
+//                        MaterialDialog.Builder builder = new MaterialDialog.Builder(getApplicationContext());
+//                        builder.title("Registration Failed")
+//                                .negativeText("Retry");
+//                        MaterialDialog dialog = builder.build();
+//                        dialog.show();
+//                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        LoginRequest loginRequest = new LoginRequest(email, password, responseListener);
+        RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
+        queue.add(loginRequest);
+    }
+
+//    public void register(String name, String mEmail, String mPassword) {
+//        Response.Listener<String> responseListener = new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                try {
+//                    JSONObject jsonResponse = new JSONObject(response);
+//                    boolean resp = jsonResponse.getBoolean("success");
+//
+//                    if (resp) {
+//                        showProgress(false);
+//
+//                        Toast.makeText(getApplicationContext() , "Server response : "+resp , Toast.LENGTH_LONG).show();
+//
+//                    } else {
+//                        MaterialDialog.Builder builder = new MaterialDialog.Builder(getApplicationContext());
+//                        builder.title("Registration Failed")
+//                                .negativeText("Retry");
+//                        MaterialDialog dialog = builder.build();
+//                        dialog.show();
+//                    }
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//
+//        RegisterRequest registerRequest = new RegisterRequest(name, mEmail, mPassword, responseListener);
+//        RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
+//        queue.add(registerRequest);
+//    }
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
@@ -193,72 +268,58 @@ public class LoginActivity extends AppCompatActivity{
         }
     }
 
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(LoginActivity.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
-    }
-
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
+        private final String name;
         private final String mEmail;
         private final String mPassword;
+        boolean result;
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+        UserLoginTask(String name, String email, String password) {
+            this.name = name;
+            this.mEmail = email;
+            this.mPassword = password;
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
+            final boolean rep = false;
             // TODO: register the new account here.
-            return true;
+            Response.Listener<String> responseListener = new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        result = jsonResponse.getBoolean("success");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            RegisterRequest registerRequest = new RegisterRequest(name, mEmail, mPassword, responseListener);
+            RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
+            queue.add(registerRequest);
+
+            return result;
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
 
             if (success) {
-                finish();
+                showProgress(false);
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+//                MaterialDialog.Builder builder = new MaterialDialog.Builder(getApplicationContext());
+//                builder.title("Registration Failed")
+//                        .negativeText("Retry");
+//                MaterialDialog dialog = builder.build();
+//                dialog.show();
             }
         }
 
