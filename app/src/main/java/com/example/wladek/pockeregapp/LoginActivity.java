@@ -22,28 +22,18 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 import com.example.wladek.pockeregapp.util.LoginRequest;
-import com.example.wladek.pockeregapp.util.RegisterRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity {
 
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
-    private static final int REQUEST_READ_CONTACTS = 0;
-
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -52,7 +42,6 @@ public class LoginActivity extends AppCompatActivity {
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
-    private EditText edName;
     private View mProgressView;
     private View mLoginFormView;
     private Button btnSkip;
@@ -65,7 +54,6 @@ public class LoginActivity extends AppCompatActivity {
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordView = (EditText) findViewById(R.id.password);
-        edName = (EditText) findViewById(R.id.edName);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -117,7 +105,6 @@ public class LoginActivity extends AppCompatActivity {
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String name = edName.getText().toString();
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
@@ -132,11 +119,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Check for a valid email address.
-        if (TextUtils.isEmpty(name)) {
-            edName.setError(getString(R.string.error_field_required));
-            focusView = edName;
-            cancel = true;
-        } else if (TextUtils.isEmpty(email)) {
+        if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
@@ -160,12 +143,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void login(String email, String password) {
-        Response.Listener<String> responseListener = new Response.Listener<String>() {
+
+        Map<String, String> loginParams = new HashMap<String, String>();
+
+        loginParams.put("userName", email);
+        loginParams.put("password", password);
+
+        Response.Listener<JSONObject> responseListener = new Response.Listener<JSONObject>() {
             @Override
-            public void onResponse(String response) {
+            public void onResponse(JSONObject response) {
                 try {
-                    JSONObject jsonResponse = new JSONObject(response);
-                    boolean resp = jsonResponse.getBoolean("success");
+                    boolean resp = response.getBoolean("success");
 
 
 //                    if (resp) {
@@ -186,7 +174,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        LoginRequest loginRequest = new LoginRequest(email, password, responseListener);
+        com.example.wladek.pockeregapp.net.LoginRequest loginRequest = new com.example.wladek.pockeregapp.net.LoginRequest(new JSONObject(loginParams), responseListener);
         RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
         queue.add(loginRequest);
     }
@@ -217,14 +205,14 @@ public class LoginActivity extends AppCompatActivity {
 //            }
 //        };
 //
-//        RegisterRequest registerRequest = new RegisterRequest(name, mEmail, mPassword, responseListener);
+//        LoginRequest registerRequest = new LoginRequest(name, mEmail, mPassword, responseListener);
 //        RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
 //        queue.add(registerRequest);
 //    }
 
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
-        return email.contains("@");
+        return !email.contains(",");
     }
 
     private boolean isPasswordValid(String password) {
@@ -274,13 +262,11 @@ public class LoginActivity extends AppCompatActivity {
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final String name;
         private final String mEmail;
         private final String mPassword;
         boolean result;
 
-        UserLoginTask(String name, String email, String password) {
-            this.name = name;
+        UserLoginTask(String email, String password) {
             this.mEmail = email;
             this.mPassword = password;
         }
@@ -288,7 +274,6 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             final boolean rep = false;
-            // TODO: register the new account here.
             Response.Listener<String> responseListener = new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
@@ -301,9 +286,9 @@ public class LoginActivity extends AppCompatActivity {
                 }
             };
 
-            RegisterRequest registerRequest = new RegisterRequest(name, mEmail, mPassword, responseListener);
+            LoginRequest loginRequest = new LoginRequest(mEmail, mPassword, responseListener);
             RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
-            queue.add(registerRequest);
+            queue.add(loginRequest);
 
             return result;
         }

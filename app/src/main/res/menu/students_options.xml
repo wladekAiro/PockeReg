@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/newStudent"
+        android:title="New Student" />
+    <item android:id="@+id/regCard"
+        android:title="Register Card" />
+</menu>

@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class LoginRequest extends StringRequest {
 
-    private static final String REGISTER_REQUEST_URL = "http://toppa.comuf.com/Register.php";
+    private static final String REGISTER_REQUEST_URL = StringUtils.SERVER_URL+"/admin_auth";
     private Map<String , String> params;
 
     public LoginRequest(String username, String password, Response.Listener<String> listener){

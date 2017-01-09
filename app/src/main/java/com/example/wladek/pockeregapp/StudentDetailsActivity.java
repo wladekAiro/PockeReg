@@ -8,6 +8,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -89,9 +92,35 @@ public class StudentDetailsActivity extends AppCompatActivity {
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createStudentRecord();
+                try {
+                    createStudentRecord();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.students_options, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.newStudent:
+                resetField();
+                return true;
+            case R.id.regCard:
+                Intent intent = new Intent(StudentDetailsActivity.this, NewCardActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void showGalleryOptions() {
@@ -151,12 +180,13 @@ public class StudentDetailsActivity extends AppCompatActivity {
         } catch (IOException e) {
             Toast.makeText(context, "Something went wrong while taking a photo",
                     Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 
-    public void launchGallery(Context context){
+    public void launchGallery(Context context) {
         galleryPhoto = new GalleryPhoto(context);
-        startActivityForResult(galleryPhoto.openGalleryIntent() , GALLERY_REQUEST);
+        startActivityForResult(galleryPhoto.openGalleryIntent(), GALLERY_REQUEST);
     }
 
     @Override
@@ -167,7 +197,7 @@ public class StudentDetailsActivity extends AppCompatActivity {
 
                 setPhoto(cameraPhoto.getPhotoPath());
 
-            }else if (requestCode == GALLERY_REQUEST){
+            } else if (requestCode == GALLERY_REQUEST) {
                 Uri uri = data.getData();
                 galleryPhoto.setPhotoUri(uri);
                 setPhoto(galleryPhoto.getPath());
@@ -190,7 +220,7 @@ public class StudentDetailsActivity extends AppCompatActivity {
     }
 
 
-    public void createStudentRecord(){
+    public void createStudentRecord() throws InterruptedException {
 
         String firstName = inputFirstName.getText().toString();
         String secondName = inputSecondName.getText().toString();
@@ -204,51 +234,51 @@ public class StudentDetailsActivity extends AppCompatActivity {
 
         boolean invalid = false;
 
-        if (TextUtils.isEmpty(firstName)){
+        if (TextUtils.isEmpty(firstName)) {
             inputFirstName.setError("please provide first name");
             focusView = inputFirstName;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(secondName)){
+        if (TextUtils.isEmpty(secondName)) {
             inputSecondName.setError("please provide second name");
             focusView = inputSecondName;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(surName)){
+        if (TextUtils.isEmpty(surName)) {
             inputSurName.setError("please provide surname");
             focusView = inputSurName;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(studentNumber)){
+        if (TextUtils.isEmpty(studentNumber)) {
             inputStudentNumber.setError("please provide student registration number");
             focusView = inputStudentNumber;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(parentName)){
+        if (TextUtils.isEmpty(parentName)) {
             inputParentName.setError("please provide parent's full name");
             focusView = inputParentName;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(parentIdNo)){
+        if (TextUtils.isEmpty(parentIdNo)) {
             inputParentIdNumber.setError("please provide parent's ID number");
             focusView = inputParentIdNumber;
             invalid = true;
         }
 
-        if (TextUtils.isEmpty(parentPhoneNo)){
+        if (TextUtils.isEmpty(parentPhoneNo)) {
             inputParentPhoneNumber.setError("please provide parent's phone number");
             focusView = inputParentPhoneNumber;
             invalid = true;
         }
 
-        if (invalid){
+        if (invalid) {
             focusView.requestFocus();
-        }else {
+        } else {
             Student student = new Student();
             student.setFirstName(firstName);
             student.setSchoolCode(secondName);
@@ -258,19 +288,33 @@ public class StudentDetailsActivity extends AppCompatActivity {
             student.setParentIdNumber(parentIdNo);
             student.setParentPhoneNumber(parentPhoneNo);
 
-            if (TextUtils.isEmpty(photoUrl)){
-                Toast.makeText(getApplicationContext() , "Error !!! , No photo provided." , Toast.LENGTH_LONG).show();
+            if (TextUtils.isEmpty(photoUrl)) {
+                Toast.makeText(getApplicationContext(), "Error !!! , No photo provided.", Toast.LENGTH_LONG).show();
                 return;
-            }else {
+            } else {
                 student.setPhotoPath(photoUrl);
 
                 String response = dbHelper.createStudent(student);
 
-                Toast.makeText(getApplicationContext() , response , Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();
+
+                Thread.sleep(2000);
+
+                resetField();
 
             }
         }
 
+    }
+
+    private void resetField() {
+        inputFirstName.setText(null);
+        inputSecondName.setText(null);
+        inputSurName.setText(null);
+        inputStudentNumber.setText(null);
+        inputParentName.setText(null);
+        inputParentIdNumber.setText(null);
+        inputParentPhoneNumber.setText(null);
     }
 
 }
